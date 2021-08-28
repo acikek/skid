@@ -1,0 +1,17 @@
+[package]
+name = "skid"
+description = "A class-assignment scheduler"
+version = "1.0.0"
+edition = "2018"
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/acikek/skid"
+keywords = ["cli", "school", "scheduler"]
+categories = ["command-line-utilities"]
+exclude = ["/target"]
+
+[dependencies]
+ansi_term = "0.12"
+chrono = "0.4"
+dirs = "3.0.2"
+rustyline = "9.0.0"
