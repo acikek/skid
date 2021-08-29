@@ -102,7 +102,7 @@ impl Classes {
         let mut result: Vec<String> = Vec::new();
 
         for c in self.sorted(SortingMethod::Period) {
-            result.append(&mut Self::attach_class_items(Class::assignment_list(&c.assignments, true), &c));
+            result.append(&mut Self::attach_class_items(Class::assignment_list(&c.assignments, true, result.len()), &c));
         }
 
         result

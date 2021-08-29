@@ -71,7 +71,7 @@ impl Class {
             .collect::<Vec<String>>()
     }
 
-    pub fn assignment_list(assignments: &Vec<Assignment>, color: bool) -> Vec<String> {
+    pub fn assignment_list(assignments: &Vec<Assignment>, color: bool, start_from: usize) -> Vec<String> {
         let mut len: usize = 0;
 
         for s in assignments {
@@ -84,7 +84,7 @@ impl Class {
             .iter()
             .enumerate()
             .map(|(i, a)| {
-                let n = (i + 1).to_string();
+                let n = (i + 1 + start_from).to_string();
 
                 format!("{}{} {}", 
                     if color { Yellow.bold().paint(n).to_string() } else { n },
@@ -138,7 +138,7 @@ impl Class {
     }
 
     pub fn display_all(&self) -> String {
-        let assignments = indent_endl(Self::assignment_list(&self.assignments, true), 2);
+        let assignments = indent_endl(Self::assignment_list(&self.assignments, true, 0), 2);
         let completed = indent_endl(Self::completed_list(&self.completed), 2);
         
         Self::display_all_fmt(assignments, completed)
