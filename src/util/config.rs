@@ -23,7 +23,7 @@ pub fn create_config() {
 }
 
 pub fn write_config(classes: &Classes) {
-    classes.write(config_file());
+    classes.write(config_file(), classes.encode());
 }
 
 pub fn read_config() -> Classes {

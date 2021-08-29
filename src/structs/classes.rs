@@ -74,13 +74,17 @@ impl Classes {
         values
     }
 
-    pub fn attach_class(s: &String, c: &Class) -> String {
-        format!("{} {}", s, Purple.bold().paint(format!("({})", c.id.clone())))
+    pub fn attach_class(s: &String, c: &String) -> String {
+        format!("{} {}", s, Purple.bold().paint(format!("({})", c)))
     }
 
-    pub fn attach_class_items(&self, v: Vec<String>, c: &Class) -> Vec<String> {
+    pub fn attach_class_tag(s: &String, c: &String) -> String {
+        format!("{} #{}", s, c)
+    }
+
+    pub fn attach_class_items(v: Vec<String>, c: &Class) -> Vec<String> {
         v.iter()
-            .map(|s| Self::attach_class(s, &c))
+            .map(|s| Self::attach_class(s, &c.id.clone()))
             .collect::<Vec<String>>()
     }
 
@@ -88,7 +92,7 @@ impl Classes {
         let mut result: Vec<String> = Vec::new();
 
         for c in self.sorted(SortingMethod::Period) {
-            result.append(&mut self.attach_class_items(Class::completed_list(&c.late()), &c));
+            result.append(&mut Self::attach_class_items(Class::completed_list(&c.late()), &c));
         }
 
         result
@@ -98,7 +102,26 @@ impl Classes {
         let mut result: Vec<String> = Vec::new();
 
         for c in self.sorted(SortingMethod::Period) {
-            result.append(&mut self.attach_class_items(Class::assignment_list(&c.assignments), &c));
+            result.append(&mut Self::attach_class_items(Class::assignment_list(&c.assignments, true), &c));
+        }
+
+        result
+    }
+    
+    pub fn assignments_by_date(&self) -> HashMap<String, Vec<String>> {
+        let mut result: HashMap<String, Vec<String>> = HashMap::new();
+
+        for c in self.sorted(SortingMethod::Period) {
+            for a in c.assignments {
+                let date = a.due_date.format("%Y-%m-%d").to_string();
+                let value = Self::attach_class_tag(&a.name, &c.id.clone());
+
+                if result.contains_key(&date) {
+                    result.get_mut(&date).unwrap().push(value);
+                } else {
+                    result.insert(date, vec![value]);
+                }
+            }
         }
 
         result
@@ -108,7 +131,7 @@ impl Classes {
         let mut result: Vec<String> = Vec::new();
 
         for c in self.sorted(SortingMethod::Period) {
-            result.append(&mut self.attach_class_items(Class::completed_list(&c.completed), &c));
+            result.append(&mut Self::attach_class_items(Class::completed_list(&c.completed), &c));
         }
 
         result
@@ -133,6 +156,28 @@ impl Classes {
         self.sorted(sort).iter().map(|c| c.display()).collect::<Vec<String>>().join("\n")
     }
 
+    pub fn klog(&self, avg: usize) -> String {
+        let map = self.assignments_by_date();
+        let mut result: Vec<String> = Vec::new();
+
+        let t = format!("{}h", avg);
+
+        for d in map.keys() {
+            let vals = map.get(d).unwrap()
+                .clone()
+                .iter()
+                .map(|v| format!("{} {}", t, v))
+                .collect();
+
+            let body = indent_endl(vals, 2);
+            let s = format!("{}\n{}", d, body);
+
+            result.push(s);
+        }
+
+        result.join("\n\n")
+    }
+
     pub fn encode(&self) -> String {
         self.sorted(SortingMethod::Period).iter().map(|c| c.encode()).collect::<Vec<String>>().join("\n")
     }
@@ -152,8 +197,8 @@ impl Classes {
         }
     }
 
-    pub fn write(&self, path: PathBuf) {
-        match write(path.clone(), self.encode()) {
+    pub fn write(&self, path: PathBuf, data: String) {
+        match write(path.clone(), data) {
             Ok(_) => success(format!("wrote to '{}'", path.to_str().unwrap())),
             Err(e) => err(e.to_string())
         }

@@ -2,6 +2,7 @@ extern crate ansi_term;
 extern crate rustyline;
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use ansi_term::Color::{Green};
 use rustyline::Editor;
@@ -41,6 +42,7 @@ pub fn handler(classes: &mut Classes, rl: &mut Editor<()>) -> bool {
     help.insert("encode", (None, "Displays encoded class data.", None));
     help.insert("help", (Some("(<command>)"), "Displays help info for a command.\nIf no command is supplied, displays all commands.", Some("h")));
     help.insert("info", (Some("(<id>)"), "Displays class info and assignments.\nIf no ID is supplied, displays all class info.", Some("i")));
+    help.insert("klog", (Some("<avg> (<path>)"), "Displays assignment data in klog format.\nThis is particularly useful for keeping track of\nassignments you've completed with date and time.\n\nThe 'avg' argument is how many hours on average\nyou'd expect to complete the assignments in.\nYou can modify these values after writing.\n\nOptionally specify a path to write to.\n'.klg' is automatically appended to the path.\n\nLearn more about klog at: https://klog.jotaen.net", None));
     help.insert("list", (Some("(<sort>)"), "Lists all classes by ID and name.\nYou can sort classes by id, name and period (default).", Some("ls, l")));
     help.insert("modify", (Some("<id> <property> <value...>"), "Modifies class metadata by input.\nClass ID cannot be modified.", Some("mod, m")));
     help.insert("panic", (None, "Prevents writing to config upon exiting the program.\nThis is useful if you've made an irreversible mistake while editing.", None));
@@ -177,6 +179,25 @@ pub fn handler(classes: &mut Classes, rl: &mut Editor<()>) -> bool {
                             }
                         } else {
                             println!("\n{}", classes.display_all_info());
+                        }
+                    }
+                    "klog" => {
+                        if args.check(1, true) {
+                            match to_int(&args.list[0]) {
+                                Some(n) => {
+                                    let data = classes.klog(n);
+                                    
+                                    if args.check(2, false) {
+                                        let mut path = PathBuf::from(args.list[1].clone());
+                                        path.set_extension("klg");
+
+                                        classes.write(path, data);
+                                    } else {
+                                        println!("\n{}", data);
+                                    }
+                                }
+                                None => ()
+                            }
                         }
                     }
                     "list" | "ls" | "l" => {

@@ -28,6 +28,7 @@ The welcome message and `help` command will guide you through the tool. Here's a
   - Made a mistake? Prevent writing to config with `panic`
     - Show what would be written with `encode`
     - Write to the config anyways with `write`
+- Track assignments before you complete them with [`klog`](https://klog.jotaen.net)
 
 ...And much more!
 
